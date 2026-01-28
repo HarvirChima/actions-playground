@@ -1,171 +1,75 @@
-# =============================================================================
 # 05 - MULTIPLE JOBS AND RUNNERS
-# =============================================================================
-# 🎯 PURPOSE: Demonstrates how to structure workflows with multiple jobs,
-# use different operating system runners, and leverage matrix strategy for
-# parallel testing across multiple configurations.
-#
-# 📚 KEY CONCEPTS COVERED:
-#   • Multiple jobs (parallel by default)
-#   • Different runner types (Ubuntu, Windows, macOS)
-#   • Job dependencies with 'needs'
-#   • Matrix strategy for parallel execution
-#
-# 🖥️ GITHUB-HOSTED RUNNERS:
-#   GitHub provides free runners with common operating systems:
-#
-#   Linux:
-#   • ubuntu-latest (currently Ubuntu 22.04)
-#   • ubuntu-22.04, ubuntu-20.04
-#
-#   Windows:
-#   • windows-latest (currently Windows Server 2022)
-#   • windows-2022, windows-2019
-#
-#   macOS:
-#   • macos-latest (currently macOS 14)
-#   • macos-14, macos-13, macos-12
-#
-#   Each runner comes pre-installed with common tools and SDKs.
-#   See: https://github.com/actions/runner-images for full details.
-#
-# 🔗 JOB EXECUTION ORDER:
-#   • By default, jobs run in PARALLEL (simultaneously)
-#   • Use 'needs: job-id' to create dependencies (sequential execution)
-#   • Jobs can depend on multiple other jobs: needs: [job1, job2]
-# =============================================================================
+# Parallel jobs, different OS runners, job dependencies, matrix strategy
 
 name: 05 - Multiple Jobs and Runners
 
 on:
   push:
     branches: [ main, copilot/** ]
-  workflow_dispatch:  # Allow manual triggering for demos
+  workflow_dispatch:
 
 jobs:
-  # ===========================================================================
-  # JOB 1: UBUNTU RUNNER
-  # ===========================================================================
-  # This job runs on Ubuntu Linux, the most common runner for CI/CD.
+  # UBUNTU RUNNER
   ubuntu-job:
     name: Ubuntu Runner
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
-      # Display OS information using Linux commands
       - name: Display OS info
         run: |
           echo "Running on Ubuntu"
           uname -a
-          lsb_release -a
           
-  # ===========================================================================
-  # JOB 2: WINDOWS RUNNER
-  # ===========================================================================
-  # This job runs on Windows Server. Note: shell commands are different!
-  # Windows uses PowerShell by default, or you can specify 'shell: bash'.
+  # WINDOWS RUNNER - uses PowerShell by default
   windows-job:
     name: Windows Runner
     runs-on: windows-latest
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
-      # Display OS information using Windows commands (PowerShell)
       - name: Display OS info
         run: |
           echo "Running on Windows"
           systeminfo | findstr /B /C:"OS Name" /C:"OS Version"
           
-  # ===========================================================================
-  # JOB 3: MACOS RUNNER
-  # ===========================================================================
-  # This job runs on macOS. Useful for building iOS apps or macOS-specific tools.
-  # Note: macOS runners typically have higher queue times.
+  # MACOS RUNNER
   macos-job:
     name: macOS Runner
     runs-on: macos-latest
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
-      # Display OS information using macOS commands
       - name: Display OS info
         run: |
           echo "Running on macOS"
           sw_vers
           
-  # ===========================================================================
-  # JOB 4: DEPENDENT JOB (SEQUENTIAL EXECUTION)
-  # ===========================================================================
-  # The 'needs' keyword creates a dependency on another job.
-  # This job will only run AFTER 'ubuntu-job' completes successfully.
-  # If ubuntu-job fails, this job is automatically skipped.
+  # DEPENDENT JOB - 'needs' creates sequential execution
   dependent-job:
     name: Dependent Job
     runs-on: ubuntu-latest
-    needs: ubuntu-job  # ← This is the key! Wait for ubuntu-job to finish
-    
+    needs: ubuntu-job
     steps:
       - name: Display dependency info
-        run: |
-          echo "This job runs after ubuntu-job completes"
-          echo "Useful for deployment pipelines"
+        run: echo "This job runs after ubuntu-job completes"
           
-  # ===========================================================================
-  # JOB 5: MATRIX STRATEGY (PARALLEL TESTING)
-  # ===========================================================================
-  # Matrix strategy creates multiple job instances with different configurations.
-  # GitHub automatically runs all combinations in parallel!
-  #
-  # In this example:
-  #   • 2 operating systems × 2 Node versions = 4 parallel jobs
-  #   • Each combination runs independently
-  #
-  # This is extremely powerful for:
-  #   • Testing across multiple OS versions
-  #   • Testing across multiple language/runtime versions
-  #   • Testing across different configurations
+  # MATRIX STRATEGY - parallel testing across configurations
+  # 2 OS × 2 Node versions = 4 parallel jobs
   matrix-job:
     name: Matrix - ${{ matrix.os }} / Node ${{ matrix.node }}
-    # The 'matrix.os' value is used dynamically for runs-on
     runs-on: ${{ matrix.os }}
-    
-    # STRATEGY: Define the matrix of configurations to test
     strategy:
       matrix:
-        # Each array creates a dimension of the matrix
-        os: [ubuntu-latest, windows-latest]  # 2 operating systems
-        node: [18, 20]                        # 2 Node.js versions
-        # Result: 2 × 2 = 4 job instances running in parallel!
-        
-        # You can also add 'include' to add specific combinations:
-        # include:
-        #   - os: ubuntu-latest
-        #     node: 21
-        #     experimental: true
-        
-        # Or 'exclude' to skip specific combinations:
-        # exclude:
-        #   - os: windows-latest
-        #     node: 18
-    
+        os: [ubuntu-latest, windows-latest]
+        node: [18, 20]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
-      # Use setup-node action with the matrix node version
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node }}  # Uses the current matrix value
-          
-      # Verify the versions are as expected
+          node-version: ${{ matrix.node }}
       - name: Display versions
         run: |
           node --version

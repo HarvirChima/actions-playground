@@ -1,115 +1,24 @@
-# =============================================================================
 # 12 - ADVANCED TRIGGERS
-# =============================================================================
-# 🎯 PURPOSE: Demonstrates advanced trigger configurations to fine-tune
-# EXACTLY when your workflows run.
-#
-# 📚 KEY CONCEPTS COVERED:
-#   • Branch filters with glob patterns
-#   • Path filters (only run when specific files change)
-#   • Tag filters (trigger on version tags)
-#   • Activity types (specific PR/issue actions)
-#   • Combining multiple trigger types
-#
-# 🎚️ WHY USE FILTERS?
-#   Without filters: Workflows run on EVERY push to ANY branch
-#   With filters: Workflows run only when needed, saving time and resources
-#
-#   Examples:
-#   • Only run tests when source code changes (not docs)
-#   • Only deploy from the main branch
-#   • Only run full CI on feature/* branches
-#   • Trigger releases when version tags are pushed
-#
-# 🔤 GLOB PATTERN REFERENCE:
-#   • 'main'       - Exact match for 'main' branch
-#   • 'feature/*'  - Matches 'feature/login' (one level)
-#   • 'feature/**' - Matches 'feature/auth/login' (any depth)
-#   • 'v*'         - Matches 'v1', 'v2.0', 'v1.2.3'
-#   • '*.md'       - Matches any markdown file
-#   • 'src/**'     - Matches anything under src/
-# =============================================================================
+# Branch/path/tag filters, activity types, combining multiple triggers
+# Globs: 'main', 'feature/*' (one level), 'feature/**' (any depth), 'v*'
 
 name: 12 - Advanced Triggers
 
 on:
-  # ===========================================================================
-  # PUSH TRIGGER WITH FILTERS
-  # ===========================================================================
   push:
-    # -------------------------------------------------------------------------
-    # BRANCH FILTERS
-    # -------------------------------------------------------------------------
-    # Only trigger on pushes to these branches.
-    # Uses glob patterns for flexible matching.
-    branches:
-      - main           # Exact match
-      - 'feature/**'   # Any branch starting with 'feature/' (any depth)
-      - 'release/*'    # Any branch starting with 'release/' (one level)
-    
-    # -------------------------------------------------------------------------
-    # PATH FILTERS
-    # -------------------------------------------------------------------------
-    # Only trigger when files matching these patterns are changed.
-    # Great for skipping CI when only docs change.
-    paths:
-      - 'src/**'                   # Any file under src/
-      - '.github/workflows/**'     # Any workflow file
-    
-    # -------------------------------------------------------------------------
-    # TAG FILTERS
-    # -------------------------------------------------------------------------
-    # Trigger on tag pushes matching these patterns.
-    # Common for release automation (e.g., push v1.0.0 tag → deploy).
-    #
-    # Note: When both branches and tags are specified, a push matching EITHER
-    # will trigger the workflow (they're OR'd together).
-    tags:
-      - 'v*'  # Matches v1, v1.0, v1.0.0, v2.0.0-beta, etc.
+    branches: [main, 'feature/**', 'release/*']  # Glob patterns
+    paths: ['src/**', '.github/workflows/**']    # Only on specific file changes
+    tags: ['v*']                                 # Tag pushes (release automation)
       
-  # ===========================================================================
-  # PULL_REQUEST TRIGGER WITH FILTERS
-  # ===========================================================================
   pull_request:
-    # -------------------------------------------------------------------------
-    # ACTIVITY TYPES
-    # -------------------------------------------------------------------------
-    # By default, pull_request triggers on: opened, synchronize, reopened
-    # Specify 'types' to trigger on additional or different activities.
-    #
-    # Available PR activity types:
-    #   opened, synchronize, reopened, closed, assigned, unassigned,
-    #   labeled, unlabeled, edited, ready_for_review, converted_to_draft,
-    #   review_requested, review_request_removed, auto_merge_enabled, etc.
-    types: [opened, synchronize, reopened, labeled]
+    types: [opened, synchronize, reopened, labeled]  # Activity types
+    branches: [main]
+    paths-ignore: ['docs/**', '*.md']  # Skip CI for docs-only changes
     
-    # Only trigger for PRs targeting the main branch
-    branches:
-      - main
-    
-    # -------------------------------------------------------------------------
-    # PATH IGNORE (inverse of paths)
-    # -------------------------------------------------------------------------
-    # DON'T trigger when ONLY these files change.
-    # Use 'paths-ignore' when you want to exclude a few patterns.
-    # Use 'paths' when you want to include only specific patterns.
-    paths-ignore:
-      - 'docs/**'  # Don't run CI for documentation-only changes
-      - '*.md'     # Don't run CI for README changes
-      
-  # ===========================================================================
-  # ISSUE_COMMENT TRIGGER
-  # ===========================================================================
-  # Trigger when comments are made on issues or PRs.
-  # Great for ChatOps (e.g., "/deploy" command in a comment).
   issue_comment:
-    types: [created]  # Only on new comments, not edits or deletions
+    types: [created]  # ChatOps trigger
     
-  # ===========================================================================
-  # WORKFLOW_DISPATCH (MANUAL TRIGGER)
-  # ===========================================================================
-  # Always include this for testing - allows manual triggering from the UI.
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger for testing
 
 jobs:
   trigger-info:
@@ -120,52 +29,32 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      # -----------------------------------------------------------------------
-      # DISPLAY WHICH TRIGGER FIRED
-      # -----------------------------------------------------------------------
-      # The 'github' context contains information about the workflow run.
+      # GITHUB CONTEXT - info about the workflow run
       - name: Display event information
         run: |
-          echo "Event name: ${{ github.event_name }}"
+          echo "Event: ${{ github.event_name }}"
           echo "Ref: ${{ github.ref }}"
           echo "SHA: ${{ github.sha }}"
           
-      # -----------------------------------------------------------------------
-      # CONDITIONAL LOGIC BY EVENT TYPE
-      # -----------------------------------------------------------------------
-      # Different events provide different information. Use conditionals
-      # to handle each event type appropriately.
-      
-      # PUSH EVENT: Provides branch/tag info and pusher details
+      # CONDITIONAL BY EVENT TYPE
       - name: Push event details
         if: github.event_name == 'push'
         run: |
-          echo "This was triggered by a push event"
           echo "Branch/Tag: ${{ github.ref }}"
           echo "Pusher: ${{ github.actor }}"
           
-      # PULL_REQUEST EVENT: Provides PR number, author, and action type
       - name: Pull request event details
         if: github.event_name == 'pull_request'
         run: |
-          echo "This was triggered by a PR event"
           echo "PR Number: ${{ github.event.pull_request.number }}"
           echo "PR Action: ${{ github.event.action }}"
-          echo "PR Author: ${{ github.event.pull_request.user.login }}"
           
-      # ISSUE_COMMENT EVENT: Provides comment body and author
       - name: Issue comment event details
         if: github.event_name == 'issue_comment'
         run: |
-          echo "This was triggered by an issue comment"
           echo "Comment: ${{ github.event.comment.body }}"
           echo "Commenter: ${{ github.event.comment.user.login }}"
           
-      # Summary of filter types used
       - name: Explain filters
         run: |
-          echo "This workflow uses advanced filters:"
-          echo "- Only runs on specific branches"
-          echo "- Only runs when certain paths are changed"
-          echo "- Can trigger on specific PR actions"
-          echo "- Can trigger on issue comments"
+          echo "Filters: branches, paths, paths-ignore, tags, types"

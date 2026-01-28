@@ -1,39 +1,6 @@
-# =============================================================================
 # 06 - MARKETPLACE ACTIONS
-# =============================================================================
-# 🎯 PURPOSE: Demonstrates how to use pre-built actions from the GitHub
-# Marketplace to extend your workflows without writing custom code.
-#
-# 📚 KEY CONCEPTS COVERED:
-#   • Using official GitHub actions (setup-node, setup-python, setup-go)
-#   • Using community actions from the Marketplace
-#   • Upload and download artifacts between jobs
-#   • Action versioning (@v4, @v5, etc.)
-#
-# 🛒 GITHUB MARKETPLACE:
-#   The GitHub Marketplace (github.com/marketplace?type=actions) contains
-#   thousands of pre-built actions you can use in your workflows:
-#
-#   OFFICIAL GITHUB ACTIONS (under the 'actions' org):
-#   • actions/checkout - Clone repository
-#   • actions/setup-node - Install Node.js
-#   • actions/setup-python - Install Python
-#   • actions/setup-go - Install Go
-#   • actions/cache - Cache dependencies
-#   • actions/upload-artifact - Save files between jobs
-#   • actions/download-artifact - Retrieve saved files
-#
-#   VERIFIED CREATORS:
-#   Look for the ✓ verified badge - these are trusted organizations
-#   that GitHub has verified as official maintainers of their actions.
-#
-# 📌 ACTION VERSIONING:
-#   Always specify a version when using actions:
-#   • @v4 - Major version (recommended: auto-updates for minor/patch)
-#   • @v4.0.0 - Exact version (most stable, no auto-updates)
-#   • @main - Branch (not recommended: can break unexpectedly)
-#   • @abc123 - Commit SHA (most secure, but harder to maintain)
-# =============================================================================
+# Pre-built actions: setup-*, artifacts, verified creators
+# Version: @v4 (major), @v4.0.0 (exact), @sha (secure)
 
 name: 06 - Marketplace Actions
 
@@ -43,101 +10,61 @@ on:
   workflow_dispatch:
 
 jobs:
-  # ===========================================================================
-  # JOB 1: SETUP ACTIONS
-  # ===========================================================================
-  # Demonstrates using official setup-* actions to install languages/tools.
-  # These actions configure the runner environment with specific versions.
+  # SETUP ACTIONS - install languages/tools on runners
   setup-languages:
     name: Setup Multiple Languages
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      # -----------------------------------------------------------------------
-      # SETUP-NODE ACTION
-      # -----------------------------------------------------------------------
-      # Installs Node.js and npm on the runner.
-      # The 'with' keyword passes inputs to the action.
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'  # Can also use: 'lts/*', '18.x', 'node'
+          node-version: '20'
           
-      # -----------------------------------------------------------------------
-      # SETUP-PYTHON ACTION
-      # -----------------------------------------------------------------------
-      # Installs Python and pip on the runner.
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'  # Can also use: '3.x', 'pypy3.9'
+          python-version: '3.11'
           
-      # -----------------------------------------------------------------------
-      # SETUP-GO ACTION
-      # -----------------------------------------------------------------------
-      # Installs Go on the runner.
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21'  # Can also use: 'stable', '1.x'
+          go-version: '1.21'
           
-      # Verify all languages were installed correctly
       - name: Display versions
         run: |
           echo "Node version: $(node --version)"
           echo "Python version: $(python --version)"
           echo "Go version: $(go version)"
           
-  # ===========================================================================
-  # JOB 2: ARTIFACTS
-  # ===========================================================================
-  # Demonstrates using artifacts to pass files between jobs or persist
-  # build outputs. Artifacts are stored on GitHub and accessible for download.
+  # ARTIFACTS - persist files between jobs, download from UI
   upload-download-artifacts:
     name: Upload and Download Artifacts
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      # Create some files to use as an artifact
       - name: Create artifact
         run: |
           mkdir -p artifacts
           echo "Build timestamp: $(date)" > artifacts/build-info.txt
           echo "Build number: ${{ github.run_number }}" >> artifacts/build-info.txt
           
-      # -----------------------------------------------------------------------
-      # UPLOAD-ARTIFACT ACTION
-      # -----------------------------------------------------------------------
-      # Uploads files/folders as artifacts that:
-      #   • Can be downloaded from the GitHub UI
-      #   • Can be accessed by other jobs in the same workflow
-      #   • Are retained for a configurable number of days
       - name: Upload artifact
         uses: actions/upload-artifact@v4.4.3
         with:
-          name: build-artifacts           # Name shown in the GitHub UI
-          path: artifacts/                # Files/folders to upload
-          retention-days: 7               # How long to keep the artifact
+          name: build-artifacts
+          path: artifacts/
+          retention-days: 7
           
-      # -----------------------------------------------------------------------
-      # DOWNLOAD-ARTIFACT ACTION
-      # -----------------------------------------------------------------------
-      # Downloads artifacts uploaded earlier in the workflow.
-      # In real scenarios, this is often in a different job.
       - name: Download artifact
         uses: actions/download-artifact@v4.1.3
         with:
-          name: build-artifacts           # Must match the upload name
-          path: downloaded-artifacts/     # Where to download to
+          name: build-artifacts
+          path: downloaded-artifacts/
           
-      # Verify the artifact was downloaded successfully
       - name: Display artifact contents
-        run: |
-          echo "Downloaded artifacts:"
-          cat downloaded-artifacts/build-info.txt
+        run: cat downloaded-artifacts/build-info.txt

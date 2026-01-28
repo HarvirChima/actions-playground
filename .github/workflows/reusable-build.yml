@@ -1,79 +1,25 @@
-# =============================================================================
 # REUSABLE BUILD WORKFLOW
-# =============================================================================
-# 🎯 PURPOSE: This is a REUSABLE WORKFLOW - it defines a workflow that can be
-# called from other workflows using 'uses'. Think of it as a "function" that
-# other workflows can invoke.
-#
-# 📚 KEY CONCEPTS COVERED:
-#   • workflow_call trigger (makes a workflow reusable)
-#   • Defining inputs for callers to provide
-#   • Defining outputs that callers can consume
-#   • Defining secrets that callers must pass
-#
-# 🔄 HOW REUSABLE WORKFLOWS WORK:
-#
-#   1. This file defines 'on: workflow_call' - NOT push/pull_request
-#   2. This workflow CANNOT run on its own (no direct triggers)
-#   3. Other workflows "call" this using: uses: ./.github/workflows/reusable-build.yml
-#   4. Callers pass inputs, receive outputs
-#
-# 📊 REUSABLE WORKFLOW vs COMPOSITE ACTION:
-#
-#   REUSABLE WORKFLOW:
-#   • Located in .github/workflows/
-#   • Contains full jobs with multiple steps
-#   • Called with 'uses' at the job level
-#   • Can have its own runners
-#
-#   COMPOSITE ACTION:
-#   • Located in .github/actions/*/action.yml
-#   • Contains only steps (no jobs)
-#   • Called with 'uses' at the step level
-#   • Runs on the calling job's runner
-# =============================================================================
+# Defined with 'on: workflow_call' - cannot run standalone
+# Called at job level: uses: ./.github/workflows/reusable-build.yml
 
 name: Reusable Build Workflow
 
 on:
-  # ===========================================================================
-  # WORKFLOW_CALL TRIGGER
-  # ===========================================================================
-  # This trigger makes a workflow reusable. Without this, other workflows
-  # cannot call this file.
   workflow_call:
-    # -------------------------------------------------------------------------
-    # INPUTS: Parameters that calling workflows must/can provide
-    # -------------------------------------------------------------------------
     inputs:
-      # REQUIRED INPUT: Caller must provide this value
       environment:
         description: 'Target environment'
         required: true
         type: string
-      # OPTIONAL INPUT: Has a default value if not provided
       node-version:
         description: 'Node.js version to use'
         required: false
         type: string
         default: '20'
-    
-    # -------------------------------------------------------------------------
-    # OUTPUTS: Values this workflow returns to the caller
-    # -------------------------------------------------------------------------
-    # Outputs let callers access results from this workflow.
-    # The caller accesses these via: needs.<job-name>.outputs.<output-name>
     outputs:
       build-status:
         description: 'Build status result'
-        # This value comes from a job's output (see 'outputs' on the build job)
         value: ${{ jobs.build.outputs.status }}
-    
-    # -------------------------------------------------------------------------
-    # SECRETS: Sensitive data that callers can pass
-    # -------------------------------------------------------------------------
-    # Secrets are not inherited automatically - callers must explicitly pass them.
-    # This is a security feature to prevent accidental secret exposure.
     secrets:
       deploy-token:
         description: 'Deployment token'
@@ -83,7 +29,6 @@ jobs:
   build:
     name: Reusable Build
     runs-on: ubuntu-latest
-    # JOB OUTPUTS: Values this job exposes to the workflow's outputs
     outputs:
       status: ${{ steps.build-step.outputs.status }}
     
@@ -91,32 +36,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      # Use the input value passed by the caller
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.node-version }}
           
-      # Access inputs using ${{ inputs.input-name }}
       - name: Display configuration
         run: |
           echo "Environment: ${{ inputs.environment }}"
           echo "Node version: ${{ inputs.node-version }}"
-          echo "This is a reusable workflow!"
           
-      # Set an output that will be returned to the calling workflow
       - name: Build step
         id: build-step
         run: |
           echo "Building for ${{ inputs.environment }}..."
-          # Set a step output using GITHUB_OUTPUT
           echo "status=success" >> $GITHUB_OUTPUT
           
-      # Handle secrets if provided
-      # Note: Secrets are always passed (even if empty), so checking for
-      # non-empty values requires careful handling in production.
       - name: Use secret if provided
-        run: |
-          echo "Deploy token handling would go here"
-          echo "In production, secrets should always be provided to reusable workflows"
-          # In real scenario: use secrets.deploy-token for deployment
+        run: echo "Deploy token would be used here"
