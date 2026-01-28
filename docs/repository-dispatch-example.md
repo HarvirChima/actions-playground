@@ -33,6 +33,8 @@ First, install [GitHub CLI](https://cli.github.com/) if you haven't already.
 
 ```bash
 # Trigger with custom-event type
+# Note: On macOS, use: date -u +%Y-%m-%dT%H:%M:%SZ (BSD date)
+# On Linux: date -u +%Y-%m-%dT%H:%M:%SZ (GNU date)
 gh api repos/HarvirChima/actions-playground/dispatches \
   -F event_type=custom-event \
   -F client_payload[message]="Hello from GitHub CLI" \
@@ -48,7 +50,8 @@ gh api repos/HarvirChima/actions-playground/dispatches \
 ## Using Node.js/JavaScript
 
 ```javascript
-const fetch = require('node-fetch');
+// Using built-in fetch (Node.js 18+)
+// For older Node.js versions, use node-fetch v2: npm install node-fetch@2
 
 const token = 'YOUR_GITHUB_TOKEN';
 const owner = 'HarvirChima';

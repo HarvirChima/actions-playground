@@ -56,8 +56,11 @@ jobs:
           echo "Building for ${{ inputs.environment }}..."
           echo "status=success" >> $GITHUB_OUTPUT
           
+      # Note: Secrets passed to reusable workflows are always passed as empty strings
+      # if not provided, so checking for empty strings won't work as expected.
+      # In production, you'd typically always pass required secrets.
       - name: Use secret if provided
-        if: ${{ secrets.deploy-token != '' }}
         run: |
-          echo "Deploy token is available (masked in logs)"
-          # In real scenario: use secrets.deploy-token
+          echo "Deploy token handling would go here"
+          echo "In production, secrets should always be provided to reusable workflows"
+          # In real scenario: use secrets.deploy-token for deployment

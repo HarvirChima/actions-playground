@@ -191,7 +191,10 @@ This repository contains working examples of GitHub Actions workflows covering e
 │   └── actions/             # Custom composite actions
 │       └── greet-user/
 │           └── action.yml
-└── README.md               # This file
+├── docs/                    # Additional documentation
+│   └── repository-dispatch-example.md
+├── DEMO-GUIDE.md            # Comprehensive demo guide
+└── README.md                # This file
 ```
 
 ## Contributing

@@ -20,7 +20,7 @@ jobs:
         
       - name: Display event information
         run: |
-          echo "Event type: ${{ github.event.action }}"
+          echo "Dispatch event type: ${{ github.event.action }}"
           echo "Event payload:"
           echo '${{ toJson(github.event.client_payload) }}'
           

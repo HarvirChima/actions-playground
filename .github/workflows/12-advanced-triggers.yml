@@ -16,6 +16,9 @@ on:
     paths:
       - 'src/**'
       - '.github/workflows/**'
+    # Note: tags are included here to demonstrate the syntax.
+    # In production, consider separate workflows for tag pushes if you need
+    # different path filters for tags vs branches.
     tags:
       - 'v*'
       
