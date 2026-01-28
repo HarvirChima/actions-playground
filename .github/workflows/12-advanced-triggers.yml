@@ -1,6 +1,7 @@
 # 12 - ADVANCED TRIGGERS
 # Branch/path/tag filters, activity types, combining multiple triggers
 # Globs: 'main', 'feature/*' (one level), 'feature/**' (any depth), 'v*'
+# Note: branches and tags are OR'd (either match triggers workflow)
 
 name: 12 - Advanced Triggers
 

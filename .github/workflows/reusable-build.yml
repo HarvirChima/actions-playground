@@ -1,5 +1,5 @@
 # REUSABLE BUILD WORKFLOW
-# Defined with 'on: workflow_call' - cannot run standalone
+# Defined with 'on: workflow_call' - only runs when called by another workflow
 # Called at job level: uses: ./.github/workflows/reusable-build.yml
 
 name: Reusable Build Workflow
