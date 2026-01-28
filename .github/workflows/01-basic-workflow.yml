@@ -11,6 +11,10 @@ on:
   pull_request:
     branches: [ main ]
 
+# Best Practice: Explicitly set permissions to minimum required
+permissions:
+  contents: read
+
 jobs:
   basic-job:
     name: Basic Job Example
