@@ -330,32 +330,35 @@ jobs:
         
       - name: Demonstrate cache key strategies
         run: |
-          cat << 'EOF'
-          === Cache Key Strategies ===
+          # Using variables to avoid GitHub Actions expression evaluation
+          DOLLAR='$'
+          OPEN='{{'
+          CLOSE='}}'
           
-          1. EXACT MATCH with hashFiles:
-             key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-             Best for: Exact dependency version matching
-          
-          2. RESTORE-KEYS FALLBACK:
-             restore-keys: |
-               ${{ runner.os }}-node-
-             Best for: Partial cache hits when exact key not found
-          
-          3. COMMIT SHA for build outputs:
-             key: ${{ runner.os }}-build-${{ github.sha }}
-             Best for: Build artifacts that change with every commit
-          
-          4. BRANCH-SPECIFIC caching:
-             key: ${{ runner.os }}-${{ github.ref_name }}-cache
-             Best for: Branch-isolated caches
-          
-          5. DATE-BASED rotation (cache expiry):
-             key: ${{ runner.os }}-cache-${{ github.run_id }}
-             restore-keys: ${{ runner.os }}-cache-
-             Best for: Fresh caches with fallback to older ones
-          
-          6. VERSION-BASED invalidation:
-             key: ${{ runner.os }}-v2-${{ hashFiles('**/lockfile') }}
-             Best for: Force cache invalidation by incrementing version
-          EOF
+          echo "=== Cache Key Strategies ==="
+          echo ""
+          echo "1. EXACT MATCH with hashFiles:"
+          echo "   key: ${DOLLAR}${OPEN} runner.os ${CLOSE}-node-${DOLLAR}${OPEN} hashFiles('**/package-lock.json') ${CLOSE}"
+          echo "   Best for: Exact dependency version matching"
+          echo ""
+          echo "2. RESTORE-KEYS FALLBACK:"
+          echo "   restore-keys: |"
+          echo "     ${DOLLAR}${OPEN} runner.os ${CLOSE}-node-"
+          echo "   Best for: Partial cache hits when exact key not found"
+          echo ""
+          echo "3. COMMIT SHA for build outputs:"
+          echo "   key: ${DOLLAR}${OPEN} runner.os ${CLOSE}-build-${DOLLAR}${OPEN} github.sha ${CLOSE}"
+          echo "   Best for: Build artifacts that change with every commit"
+          echo ""
+          echo "4. BRANCH-SPECIFIC caching:"
+          echo "   key: ${DOLLAR}${OPEN} runner.os ${CLOSE}-${DOLLAR}${OPEN} github.ref_name ${CLOSE}-cache"
+          echo "   Best for: Branch-isolated caches"
+          echo ""
+          echo "5. DATE-BASED rotation (cache expiry):"
+          echo "   key: ${DOLLAR}${OPEN} runner.os ${CLOSE}-cache-${DOLLAR}${OPEN} github.run_id ${CLOSE}"
+          echo "   restore-keys: ${DOLLAR}${OPEN} runner.os ${CLOSE}-cache-"
+          echo "   Best for: Fresh caches with fallback to older ones"
+          echo ""
+          echo "6. VERSION-BASED invalidation:"
+          echo "   key: ${DOLLAR}${OPEN} runner.os ${CLOSE}-v2-${DOLLAR}${OPEN} hashFiles('**/lockfile') ${CLOSE}"
+          echo "   Best for: Force cache invalidation by incrementing version"
