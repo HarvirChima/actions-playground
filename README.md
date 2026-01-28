@@ -169,6 +169,9 @@ This repository contains working examples of GitHub Actions workflows covering e
 - [Usage limits](https://docs.github.com/en/actions/learn-github-actions/usage-limits-billing-and-administration)
 - [Caching dependencies](https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows)
 
+### Internal Actions Sharing
+- [Creating Org/Enterprise Actions Marketplace](docs/org-enterprise-actions-marketplace.md) - Guide for creating internal action sharing
+
 ## Repository Structure
 
 ```
@@ -192,7 +195,8 @@ This repository contains working examples of GitHub Actions workflows covering e
 │       └── greet-user/
 │           └── action.yml
 ├── docs/                    # Additional documentation
-│   └── repository-dispatch-example.md
+│   ├── repository-dispatch-example.md
+│   └── org-enterprise-actions-marketplace.md
 ├── DEMO-GUIDE.md            # Comprehensive demo guide
 └── README.md                # This file
 ```
