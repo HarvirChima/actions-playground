@@ -1,26 +1,67 @@
+# =============================================================================
+# 02 - MANUAL WORKFLOW DISPATCH
+# =============================================================================
+# 🎯 PURPOSE: Demonstrates how to manually trigger workflows from the GitHub UI
+# with customizable input parameters. Perfect for deployments, releases, or any
+# action that requires human decision-making.
+#
+# 📚 KEY CONCEPTS COVERED:
+#   • workflow_dispatch trigger (manual triggering)
+#   • Input parameters (choice, boolean, string types)
+#   • Accessing inputs with ${{ inputs.* }} syntax
+#   • Conditional execution with 'if' statements
+#
+# 🚀 HOW TO RUN THIS WORKFLOW:
+#   1. Go to the "Actions" tab in GitHub
+#   2. Select "02 - Manual Workflow Dispatch" from the left sidebar
+#   3. Click the "Run workflow" button
+#   4. Fill in the input parameters and click "Run workflow"
+# =============================================================================
+
 name: 02 - Manual Workflow Dispatch
 
-# This workflow demonstrates workflow_dispatch trigger
-# - Allows manual triggering from GitHub UI
-# - Supports input parameters
-# - Shows different input types (choice, boolean, string)
-
+# =============================================================================
+# WORKFLOW_DISPATCH TRIGGER
+# =============================================================================
+# This trigger allows you to manually run the workflow from GitHub's UI.
+# Unlike push/pull_request triggers, this gives you control over WHEN to run.
+# You can also define inputs that users must/can provide when triggering.
 on:
   workflow_dispatch:
+    # INPUTS: Define parameters that users can provide when triggering the workflow.
+    # Each input becomes available as ${{ inputs.input-name }} in the workflow.
     inputs:
+      # -----------------------------------------------------------------------
+      # CHOICE INPUT TYPE
+      # -----------------------------------------------------------------------
+      # 'choice' creates a dropdown menu with predefined options.
+      # Users MUST select one of the specified options.
+      # Great for: environments, deployment targets, feature flags.
       environment:
-        description: 'Environment to deploy to'
-        required: true
-        type: choice
-        options:
+        description: 'Environment to deploy to'  # Shown as help text in the UI
+        required: true                            # User must provide a value
+        type: choice                              # Dropdown selection
+        options:                                  # Available options in dropdown
           - dev
           - staging
           - production
+      
+      # -----------------------------------------------------------------------
+      # BOOLEAN INPUT TYPE
+      # -----------------------------------------------------------------------
+      # 'boolean' creates a checkbox toggle (true/false).
+      # Great for: enabling/disabling features, debug modes, dry-run options.
       enable-debug:
         description: 'Enable debug logging'
-        required: false
-        type: boolean
-        default: false
+        required: false                           # Optional input
+        type: boolean                             # Checkbox toggle
+        default: false                            # Default value if not provided
+      
+      # -----------------------------------------------------------------------
+      # STRING INPUT TYPE
+      # -----------------------------------------------------------------------
+      # 'string' creates a free-form text input field.
+      # Great for: custom messages, version numbers, commit SHAs.
       custom-message:
         description: 'Custom message to display'
         required: false
@@ -36,18 +77,35 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
+      # -----------------------------------------------------------------------
+      # ACCESSING INPUTS
+      # -----------------------------------------------------------------------
+      # Use the ${{ inputs.input-name }} syntax to access input values.
+      # This is part of GitHub's expression syntax wrapped in ${{ }}.
       - name: Display inputs
         run: |
           echo "Environment: ${{ inputs.environment }}"
           echo "Debug enabled: ${{ inputs.enable-debug }}"
           echo "Custom message: ${{ inputs.custom-message }}"
           
+      # -----------------------------------------------------------------------
+      # CONDITIONAL EXECUTION
+      # -----------------------------------------------------------------------
+      # The 'if' keyword controls whether a step runs.
+      # This step ONLY runs when debug mode is enabled by the user.
+      # Expressions in 'if' are automatically evaluated, but wrapping in ${{ }}
+      # is good practice for clarity.
       - name: Run debug commands
         if: ${{ inputs.enable-debug == true }}
         run: |
           echo "Debug mode is enabled!"
-          env
+          env  # Print all environment variables (useful for debugging)
           
+      # -----------------------------------------------------------------------
+      # USING INPUTS IN SCRIPTS
+      # -----------------------------------------------------------------------
+      # Inputs can be interpolated directly into shell scripts.
+      # This simulates a deployment to the selected environment.
       - name: Simulate deployment
         run: |
           echo "Deploying to ${{ inputs.environment }} environment..."

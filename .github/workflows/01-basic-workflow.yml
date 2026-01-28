@@ -1,32 +1,100 @@
+# =============================================================================
+# 01 - BASIC WORKFLOW
+# =============================================================================
+# 🎯 PURPOSE: Introduces the fundamental structure of a GitHub Actions workflow.
+# This is the simplest workflow you can create and serves as a foundation for
+# understanding all other workflows.
+#
+# 📚 KEY CONCEPTS COVERED:
+#   • Workflow file location (.github/workflows/)
+#   • YAML syntax basics
+#   • Event triggers (push, pull_request)
+#   • Jobs and steps
+#   • Using actions from the marketplace
+#   • Running shell commands
+# =============================================================================
+
+# The 'name' key defines a human-readable name for your workflow.
+# This appears in the GitHub Actions tab and helps identify the workflow.
 name: 01 - Basic Workflow
 
-# This workflow demonstrates basic GitHub Actions concepts
-# - Triggering on push and pull_request events
-# - Simple job with steps
-# - Using checkout action from marketplace
-
+# =============================================================================
+# TRIGGERS (on:)
+# =============================================================================
+# The 'on' key defines WHEN this workflow should run.
+# Workflows are event-driven - they respond to specific events in your repository.
+# Common events include: push, pull_request, workflow_dispatch, schedule, etc.
 on:
+  # PUSH EVENT: Triggers when code is pushed to the specified branches.
+  # This is one of the most common triggers for CI (Continuous Integration).
   push:
+    # 'branches' filters which branches trigger the workflow.
+    # This workflow runs on pushes to 'main' OR any branch matching 'copilot/**'.
+    # The '**' is a glob pattern that matches any characters including '/'.
     branches: [ main, copilot/** ]
+  
+  # PULL_REQUEST EVENT: Triggers when a PR is opened, updated, or reopened.
+  # Great for running tests and checks before code is merged.
   pull_request:
+    # Only trigger when the PR targets the 'main' branch.
     branches: [ main ]
 
-# Best Practice: Explicitly set permissions to minimum required
+# =============================================================================
+# PERMISSIONS
+# =============================================================================
+# Best Practice: Explicitly set permissions to the minimum required.
+# This follows the principle of least privilege for security.
+# Available permissions include: contents, issues, pull-requests, actions, etc.
+# Values can be: 'read', 'write', or 'none'.
 permissions:
-  contents: read
+  contents: read  # Only read access to repository contents is needed
 
+# =============================================================================
+# JOBS
+# =============================================================================
+# Jobs are the main units of work in a workflow.
+# By default, jobs run in PARALLEL. Use 'needs' to run them sequentially.
+# Each job runs in a fresh virtual environment (runner).
 jobs:
+  # 'basic-job' is the job ID - used to reference this job in other parts of the workflow.
   basic-job:
+    # 'name' is the display name shown in the GitHub UI.
     name: Basic Job Example
+    
+    # 'runs-on' specifies the type of machine (runner) to run the job on.
+    # GitHub-hosted runners include:
+    #   • ubuntu-latest (or ubuntu-22.04, ubuntu-20.04)
+    #   • windows-latest (or windows-2022, windows-2019)
+    #   • macos-latest (or macos-14, macos-13)
+    # You can also use self-hosted runners for custom environments.
     runs-on: ubuntu-latest
     
+    # ==========================================================================
+    # STEPS
+    # ==========================================================================
+    # Steps are individual tasks within a job. They run SEQUENTIALLY.
+    # Each step can either:
+    #   • Run shell commands using 'run'
+    #   • Use an action from the marketplace using 'uses'
     steps:
+      # STEP 1: Checkout the repository code
+      # 'uses' runs an action from the GitHub Marketplace or your repository.
+      # 'actions/checkout@v4' is an official GitHub action that:
+      #   • Clones your repository into the runner
+      #   • Checks out the ref (branch/commit) that triggered the workflow
+      # The '@v4' is the action version (major version tag for auto-updates).
       - name: Checkout repository
         uses: actions/checkout@v4
         
+      # STEP 2: Run a simple shell command
+      # 'run' executes shell commands directly.
+      # Single-line commands are written inline after 'run:'.
       - name: Run a simple command
         run: echo "Hello, GitHub Actions!"
         
+      # STEP 3: Run multiple shell commands
+      # Use the pipe character '|' for multi-line scripts (YAML literal block scalar).
+      # All commands run in the same shell session, so variables are shared.
       - name: Run multi-line script
         run: |
           echo "This is a multi-line script"
@@ -34,5 +102,7 @@ jobs:
           echo "User: $(whoami)"
           echo "Date: $(date)"
           
+      # STEP 4: Another shell command example
+      # Demonstrates that you can run any shell command available on the runner.
       - name: List files
         run: ls -la
