@@ -1,53 +1,12 @@
-# =============================================================================
 # 04 - REPOSITORY DISPATCH
-# =============================================================================
-# 🎯 PURPOSE: Demonstrates how to trigger workflows from EXTERNAL sources
-# using GitHub's repository_dispatch API. This enables integration with
-# external systems, webhooks, and custom automation.
-#
-# 📚 KEY CONCEPTS COVERED:
-#   • repository_dispatch trigger
-#   • Custom event types
-#   • Receiving payload data from API calls
-#   • Conditional execution based on event type
-#
-# 🔌 USE CASES:
-#   • Trigger from external CI/CD systems (Jenkins, CircleCI, etc.)
-#   • Webhook integration from third-party services
-#   • Cross-repository workflow triggering
-#   • ChatOps (trigger deployments from Slack/Discord)
-#   • IoT or monitoring systems triggering actions
-#
-# 🚀 HOW TO TRIGGER THIS WORKFLOW:
-#
-#   Using curl (replace YOUR_GITHUB_TOKEN with a PAT with 'repo' scope):
-#   
-#   curl -X POST \
-#     -H "Accept: application/vnd.github.v3+json" \
-#     -H "Authorization: token YOUR_GITHUB_TOKEN" \
-#     https://api.github.com/repos/OWNER/REPO/dispatches \
-#     -d '{"event_type":"custom-event","client_payload":{"message":"Hello!"}}'
-#
-#   Using GitHub CLI:
-#
-#   gh api repos/OWNER/REPO/dispatches \
-#     -F event_type=custom-event \
-#     -F client_payload[message]="Hello from CLI"
-#
-# 📖 For more details, see: docs/repository-dispatch-example.md
-# =============================================================================
+# External API triggers for integration with webhooks, CI systems, ChatOps
+# Trigger: POST to /repos/OWNER/REPO/dispatches with event_type and client_payload
 
 name: 04 - Repository Dispatch
 
 on:
-  # REPOSITORY_DISPATCH TRIGGER
-  # This trigger activates when a POST request is sent to the dispatches API.
-  # Unlike push/pull_request, this workflow waits for external API calls.
   repository_dispatch:
-    # TYPES: Filter which event types this workflow responds to.
-    # Only dispatch events with event_type matching these values will trigger.
-    # You define these names - they can be anything meaningful to your system.
-    types: [custom-event, webhook-event]
+    types: [custom-event, webhook-event]  # Filter by event_type
 
 jobs:
   repository-dispatch-job:
@@ -58,33 +17,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         
-      # -----------------------------------------------------------------------
-      # ACCESSING DISPATCH EVENT DATA
-      # -----------------------------------------------------------------------
-      # The dispatch event includes:
-      #   • github.event.action - The event_type from the API call
-      #   • github.event.client_payload - Custom JSON data from the API call
-      #
-      # The 'toJson()' function converts objects to JSON strings for display.
+      # Access dispatch data: github.event.action, github.event.client_payload
       - name: Display event information
         run: |
           echo "Dispatch event type: ${{ github.event.action }}"
           echo "Event payload:"
           echo '${{ toJson(github.event.client_payload) }}'
           
-      # -----------------------------------------------------------------------
-      # CONDITIONAL EXECUTION BY EVENT TYPE
-      # -----------------------------------------------------------------------
-      # Use 'if' conditions to run different logic based on the event type.
-      # This allows one workflow to handle multiple types of external triggers.
+      # CONDITIONAL - different logic per event type
       - name: Process custom event
         if: github.event.action == 'custom-event'
-        run: |
-          echo "Processing custom event..."
-          echo "This could trigger a deployment, run tests, etc."
+        run: echo "Processing custom event..."
           
       - name: Process webhook event
         if: github.event.action == 'webhook-event'
-        run: |
-          echo "Processing webhook event..."
-          echo "This could handle external service notifications"
+        run: echo "Processing webhook event..."

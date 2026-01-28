@@ -1,35 +1,6 @@
-# =============================================================================
 # 09 - CALLING REUSABLE WORKFLOWS
-# =============================================================================
-# 🎯 PURPOSE: Demonstrates how to CALL reusable workflows to share common
-# logic across multiple workflows without duplicating code.
-#
-# 📚 KEY CONCEPTS COVERED:
-#   • Calling reusable workflows with 'uses'
-#   • Passing inputs to reusable workflows
-#   • Receiving outputs from reusable workflows
-#   • Passing secrets to reusable workflows
-#
-# 🔄 WHAT ARE REUSABLE WORKFLOWS?
-#   Reusable workflows are standalone workflow files that can be "called" by
-#   other workflows, similar to how functions work in programming.
-#
-#   Benefits:
-#   • DRY (Don't Repeat Yourself) - Write once, use many times
-#   • Consistency - Same logic runs across all calling workflows
-#   • Easier maintenance - Update one file, all callers get the change
-#   • Separation of concerns - Keep complex logic in dedicated files
-#
-# 📁 FILE STRUCTURE:
-#   This file (09-reusable-workflow.yml) - The CALLER workflow
-#   reusable-build.yml - The CALLED (reusable) workflow
-#
-# 🔗 WORKFLOW HIERARCHY:
-#   1. This workflow triggers on push/workflow_dispatch
-#   2. This workflow calls reusable-build.yml with different inputs
-#   3. reusable-build.yml runs and returns outputs
-#   4. This workflow uses those outputs
-# =============================================================================
+# DRY principle: call shared workflows with 'uses' at job level
+# Path: ./.github/workflows/name.yml (same repo) or owner/repo/path@ref (external)
 
 name: 09 - Call Reusable Workflow
 
@@ -39,58 +10,33 @@ on:
   workflow_dispatch:
 
 jobs:
-  # ===========================================================================
-  # CALL REUSABLE WORKFLOW (DEV CONFIGURATION)
-  # ===========================================================================
-  # Use 'uses' with a path to call a reusable workflow.
-  # This is different from calling an action - workflows use full file paths.
+  # CALL WITH DEV CONFIG
   call-reusable-dev:
     name: Call Reusable Workflow (Dev)
-    # CALLING A REUSABLE WORKFLOW:
-    # - Use relative path for workflows in the same repository
-    # - Format: ./.github/workflows/workflow-name.yml
-    # - For external repos: owner/repo/.github/workflows/workflow.yml@ref
     uses: ./.github/workflows/reusable-build.yml
-    # PASSING INPUTS:
-    # Use 'with' to pass values to the reusable workflow's inputs.
-    # Input names must match what's defined in the reusable workflow.
     with:
       environment: dev
       node-version: '18'
       
-  # ===========================================================================
-  # CALL REUSABLE WORKFLOW (PRODUCTION CONFIGURATION)
-  # ===========================================================================
-  # Same workflow, different inputs - demonstrates the reusability.
+  # CALL WITH PROD CONFIG - same workflow, different inputs
   call-reusable-prod:
     name: Call Reusable Workflow (Prod)
     uses: ./.github/workflows/reusable-build.yml
     with:
       environment: production
       node-version: '20'
-    # PASSING SECRETS (uncomment to use):
-    # Secrets must be explicitly passed - they're not inherited automatically.
+    # Secrets must be explicitly passed:
     # secrets:
     #   deploy-token: ${{ secrets.PROD_DEPLOY_TOKEN }}
       
-  # ===========================================================================
-  # USING OUTPUTS FROM REUSABLE WORKFLOWS
-  # ===========================================================================
-  # Reusable workflows can return outputs that you can use in subsequent jobs.
+  # USE OUTPUTS from reusable workflow
   use-outputs:
     name: Use Reusable Workflow Outputs
-    # 'needs' ensures this job waits for the reusable workflow to complete
     needs: call-reusable-dev
     runs-on: ubuntu-latest
-    
     steps:
-      # ACCESS OUTPUTS from the reusable workflow using:
-      # needs.<job-id>.outputs.<output-name>
+      # Access via needs.<job-id>.outputs.<output-name>
       - name: Display outputs
         run: |
-          echo "Build status from reusable workflow: ${{ needs.call-reusable-dev.outputs.build-status }}"
-          echo "Reusable workflows help with:"
-          echo "  - DRY principle (Don't Repeat Yourself)"
-          echo "  - Consistency across workflows"
-          echo "  - Easier maintenance"
-          echo "  - Centralized logic"
+          echo "Build status: ${{ needs.call-reusable-dev.outputs.build-status }}"
+          echo "Benefits: DRY, consistency, easier maintenance"
