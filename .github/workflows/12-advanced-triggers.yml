@@ -1,0 +1,78 @@
+name: 12 - Advanced Triggers
+
+# This workflow demonstrates advanced trigger configurations
+# - Path filters
+# - Branch filters
+# - Tag filters
+# - Activity types
+# - Pull request filters
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'release/*'
+    paths:
+      - 'src/**'
+      - '.github/workflows/**'
+    tags:
+      - 'v*'
+      
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      
+  issue_comment:
+    types: [created]
+    
+  workflow_dispatch:
+
+jobs:
+  trigger-info:
+    name: Display Trigger Information
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Display event information
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "SHA: ${{ github.sha }}"
+          
+      - name: Push event details
+        if: github.event_name == 'push'
+        run: |
+          echo "This was triggered by a push event"
+          echo "Branch/Tag: ${{ github.ref }}"
+          echo "Pusher: ${{ github.actor }}"
+          
+      - name: Pull request event details
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "This was triggered by a PR event"
+          echo "PR Number: ${{ github.event.pull_request.number }}"
+          echo "PR Action: ${{ github.event.action }}"
+          echo "PR Author: ${{ github.event.pull_request.user.login }}"
+          
+      - name: Issue comment event details
+        if: github.event_name == 'issue_comment'
+        run: |
+          echo "This was triggered by an issue comment"
+          echo "Comment: ${{ github.event.comment.body }}"
+          echo "Commenter: ${{ github.event.comment.user.login }}"
+          
+      - name: Explain filters
+        run: |
+          echo "This workflow uses advanced filters:"
+          echo "- Only runs on specific branches"
+          echo "- Only runs when certain paths are changed"
+          echo "- Can trigger on specific PR actions"
+          echo "- Can trigger on issue comments"

@@ -1,0 +1,96 @@
+name: 08 - Caching Dependencies
+
+# This workflow demonstrates caching strategies
+# - Dependency caching
+# - Build output caching
+# - Cache key strategies
+
+on:
+  push:
+    branches: [ main, copilot/** ]
+  workflow_dispatch:
+
+jobs:
+  cache-npm:
+    name: Cache NPM Dependencies
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+            
+      - name: Install dependencies (if not cached)
+        run: |
+          echo "This would run: npm install"
+          echo "If cache hit, this is much faster!"
+          
+  cache-pip:
+    name: Cache Python Dependencies
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            
+      - name: Install dependencies (if not cached)
+        run: |
+          echo "This would run: pip install -r requirements.txt"
+          echo "Cache speeds up subsequent runs significantly"
+          
+  cache-build-outputs:
+    name: Cache Build Outputs
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Cache build outputs
+        uses: actions/cache@v4
+        with:
+          path: |
+            dist
+            build
+            .next
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+            
+      - name: Build project (if not cached)
+        run: |
+          echo "Building project..."
+          echo "Timestamp: $(date)" > build-output.txt
+          
+      - name: Cache benefits
+        run: |
+          echo "Caching Benefits:"
+          echo "1. Faster workflow runs"
+          echo "2. Reduced bandwidth usage"
+          echo "3. Lower costs (for private repos)"
+          echo "4. Better resource utilization"

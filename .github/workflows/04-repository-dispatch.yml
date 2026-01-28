@@ -1,0 +1,37 @@
+name: 04 - Repository Dispatch
+
+# This workflow demonstrates repository_dispatch trigger
+# - Triggered by external events via GitHub API
+# - Useful for webhooks from external services
+# - Can receive custom event types and payloads
+
+on:
+  repository_dispatch:
+    types: [custom-event, webhook-event]
+
+jobs:
+  repository-dispatch-job:
+    name: Repository Dispatch Job
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Display event information
+        run: |
+          echo "Event type: ${{ github.event.action }}"
+          echo "Event payload:"
+          echo '${{ toJson(github.event.client_payload) }}'
+          
+      - name: Process custom event
+        if: github.event.action == 'custom-event'
+        run: |
+          echo "Processing custom event..."
+          echo "This could trigger a deployment, run tests, etc."
+          
+      - name: Process webhook event
+        if: github.event.action == 'webhook-event'
+        run: |
+          echo "Processing webhook event..."
+          echo "This could handle external service notifications"

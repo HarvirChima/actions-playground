@@ -1,0 +1,34 @@
+name: 01 - Basic Workflow
+
+# This workflow demonstrates basic GitHub Actions concepts
+# - Triggering on push and pull_request events
+# - Simple job with steps
+# - Using checkout action from marketplace
+
+on:
+  push:
+    branches: [ main, copilot/** ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  basic-job:
+    name: Basic Job Example
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Run a simple command
+        run: echo "Hello, GitHub Actions!"
+        
+      - name: Run multi-line script
+        run: |
+          echo "This is a multi-line script"
+          echo "Current directory: $(pwd)"
+          echo "User: $(whoami)"
+          echo "Date: $(date)"
+          
+      - name: List files
+        run: ls -la
