@@ -1,14 +1,19 @@
 name: 08 - Caching Dependencies
 
 # This workflow demonstrates caching strategies
-# - Dependency caching
+# - Dependency caching for various package managers
 # - Build output caching
-# - Cache key strategies
+# - Cache key strategies with fallback patterns
+# - Language-specific caching examples
 
 on:
   push:
     branches: [ main, copilot/** ]
   workflow_dispatch:
+
+# Best Practice: Explicitly set permissions to minimum required
+permissions:
+  contents: read
 
 jobs:
   cache-npm:
@@ -24,6 +29,7 @@ jobs:
         with:
           node-version: '20'
           
+      # Example: Basic cache with restore-keys fallback
       - name: Cache node modules
         uses: actions/cache@v4
         with:
@@ -50,6 +56,7 @@ jobs:
         with:
           python-version: '3.11'
           
+      # Example: Caching pip packages in user cache directory
       - name: Cache pip packages
         uses: actions/cache@v4
         with:
@@ -62,6 +69,93 @@ jobs:
         run: |
           echo "This would run: pip install -r requirements.txt"
           echo "Cache speeds up subsequent runs significantly"
+
+  cache-go:
+    name: Cache Go Modules
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          
+      # Example: Caching Go modules and build cache
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+            
+      - name: Download Go modules (if not cached)
+        run: |
+          echo "This would run: go mod download"
+          echo "Go module caching significantly reduces download times"
+
+  cache-gradle:
+    name: Cache Gradle Dependencies
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          
+      # Example: Caching Gradle dependencies and wrapper
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+            
+      - name: Build with Gradle (if not cached)
+        run: |
+          echo "This would run: ./gradlew build"
+          echo "Gradle caching speeds up dependency resolution"
+
+  cache-maven:
+    name: Cache Maven Dependencies
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          
+      # Example: Caching Maven local repository
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+            
+      - name: Build with Maven (if not cached)
+        run: |
+          echo "This would run: mvn clean install"
+          echo "Maven caching reduces download times for dependencies"
           
   cache-build-outputs:
     name: Cache Build Outputs
@@ -71,6 +165,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
+      # Example: Caching build outputs with commit SHA
       - name: Cache build outputs
         uses: actions/cache@v4
         with:
@@ -94,3 +189,81 @@ jobs:
           echo "2. Reduced bandwidth usage"
           echo "3. Lower costs (for private repos)"
           echo "4. Better resource utilization"
+
+  cache-with-save-restore:
+    name: Cache with Separate Save/Restore
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      # Example: Using cache/restore for read-only cache access
+      # This pattern is useful when:
+      # 1. You want to restore cache in PR builds without saving (to avoid cache pollution)
+      # 2. You need conditional saving based on job success
+      # 3. You want to save cache with a different key than restore
+      - name: Restore cache (read-only)
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.custom-cache
+          # Using a content-based key that can be shared across commits
+          key: ${{ runner.os }}-custom-v1
+          restore-keys: |
+            ${{ runner.os }}-custom-
+            
+      - name: Perform some work
+        run: |
+          mkdir -p ~/.custom-cache
+          echo "Performing work..."
+          echo "Result: $(date)" > ~/.custom-cache/result.txt
+          
+      # Example: Using cache/save to explicitly save cache
+      # Save only on main branch to avoid polluting cache with PR builds
+      # This is a common pattern for dependency caches
+      - name: Save cache (only on main)
+        uses: actions/cache/save@v4
+        # Save only if: on main branch AND cache wasn't already hit
+        if: github.ref == 'refs/heads/main' && steps.cache-restore.outputs.cache-hit != 'true'
+        with:
+          path: ~/.custom-cache
+          key: ${{ runner.os }}-custom-v1
+
+  cache-key-strategies:
+    name: Cache Key Strategies
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Demonstrate cache key strategies
+        run: |
+          echo "=== Cache Key Strategies ==="
+          echo ""
+          echo "1. EXACT MATCH with hashFiles:"
+          echo "   key: \${{ runner.os }}-node-\${{ hashFiles('**/package-lock.json') }}"
+          echo "   Best for: Exact dependency version matching"
+          echo ""
+          echo "2. RESTORE-KEYS FALLBACK:"
+          echo "   restore-keys: |"
+          echo "     \${{ runner.os }}-node-"
+          echo "   Best for: Partial cache hits when exact key not found"
+          echo ""
+          echo "3. COMMIT SHA for build outputs:"
+          echo "   key: \${{ runner.os }}-build-\${{ github.sha }}"
+          echo "   Best for: Build artifacts that change with every commit"
+          echo ""
+          echo "4. BRANCH-SPECIFIC caching:"
+          echo "   key: \${{ runner.os }}-\${{ github.ref_name }}-cache"
+          echo "   Best for: Branch-isolated caches"
+          echo ""
+          echo "5. DATE-BASED rotation (cache expiry):"
+          echo "   key: \${{ runner.os }}-cache-\${{ github.run_id }}"
+          echo "   restore-keys: \${{ runner.os }}-cache-"
+          echo "   Best for: Fresh caches with fallback to older ones"
+          echo ""
+          echo "6. VERSION-BASED invalidation:"
+          echo "   key: \${{ runner.os }}-v2-\${{ hashFiles('**/lockfile') }}"
+          echo "   Best for: Force cache invalidation by incrementing version"
