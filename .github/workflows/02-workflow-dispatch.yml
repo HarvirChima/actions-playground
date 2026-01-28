@@ -1,0 +1,54 @@
+name: 02 - Manual Workflow Dispatch
+
+# This workflow demonstrates workflow_dispatch trigger
+# - Allows manual triggering from GitHub UI
+# - Supports input parameters
+# - Shows different input types (choice, boolean, string)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - production
+      enable-debug:
+        description: 'Enable debug logging'
+        required: false
+        type: boolean
+        default: false
+      custom-message:
+        description: 'Custom message to display'
+        required: false
+        type: string
+        default: 'Hello from workflow_dispatch!'
+
+jobs:
+  manual-trigger:
+    name: Manual Trigger Job
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Display inputs
+        run: |
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Debug enabled: ${{ inputs.enable-debug }}"
+          echo "Custom message: ${{ inputs.custom-message }}"
+          
+      - name: Run debug commands
+        if: ${{ inputs.enable-debug == true }}
+        run: |
+          echo "Debug mode is enabled!"
+          env
+          
+      - name: Simulate deployment
+        run: |
+          echo "Deploying to ${{ inputs.environment }} environment..."
+          echo "${{ inputs.custom-message }}"

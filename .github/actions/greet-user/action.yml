@@ -1,0 +1,42 @@
+name: 'Greet User'
+description: 'A composite action that greets a user and displays system info'
+author: 'GitHub Actions Demo'
+
+inputs:
+  username:
+    description: 'Name of the user to greet'
+    required: true
+  greeting:
+    description: 'Custom greeting message'
+    required: false
+    default: 'Hello'
+
+outputs:
+  message:
+    description: 'The greeting message'
+    value: ${{ steps.greet.outputs.message }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Greet user
+      id: greet
+      shell: bash
+      run: |
+        MESSAGE="${{ inputs.greeting }}, ${{ inputs.username }}! Welcome to GitHub Actions!"
+        echo "$MESSAGE"
+        echo "message=$MESSAGE" >> $GITHUB_OUTPUT
+        
+    - name: Display system info
+      shell: bash
+      run: |
+        echo "Runner OS: ${{ runner.os }}"
+        echo "Timestamp: $(date)"
+        echo "Working directory: $(pwd)"
+        
+    - name: Display context info
+      shell: bash
+      run: |
+        echo "Repository: ${{ github.repository }}"
+        echo "Ref: ${{ github.ref }}"
+        echo "Actor: ${{ github.actor }}"

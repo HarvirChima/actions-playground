@@ -1,0 +1,43 @@
+name: 09 - Call Reusable Workflow
+
+# This workflow demonstrates calling a reusable workflow
+# - Shows how to call workflows from the same repo
+# - Passing inputs to reusable workflows
+# - Using outputs from reusable workflows
+
+on:
+  push:
+    branches: [ main, copilot/** ]
+  workflow_dispatch:
+
+jobs:
+  call-reusable-dev:
+    name: Call Reusable Workflow (Dev)
+    uses: ./.github/workflows/reusable-build.yml
+    with:
+      environment: dev
+      node-version: '18'
+      
+  call-reusable-prod:
+    name: Call Reusable Workflow (Prod)
+    uses: ./.github/workflows/reusable-build.yml
+    with:
+      environment: production
+      node-version: '20'
+    # secrets:
+    #   deploy-token: ${{ secrets.PROD_DEPLOY_TOKEN }}
+      
+  use-outputs:
+    name: Use Reusable Workflow Outputs
+    needs: call-reusable-dev
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Display outputs
+        run: |
+          echo "Build status from reusable workflow: ${{ needs.call-reusable-dev.outputs.build-status }}"
+          echo "Reusable workflows help with:"
+          echo "  - DRY principle (Don't Repeat Yourself)"
+          echo "  - Consistency across workflows"
+          echo "  - Easier maintenance"
+          echo "  - Centralized logic"

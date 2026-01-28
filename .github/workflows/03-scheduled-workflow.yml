@@ -1,0 +1,35 @@
+name: 03 - Scheduled Workflow
+
+# This workflow demonstrates scheduled triggers using cron syntax
+# - Runs on a schedule (every day at 00:00 UTC in this example)
+# - Useful for periodic tasks like backups, reports, cleanup
+
+on:
+  schedule:
+    # Runs at 00:00 UTC every day
+    - cron: '0 0 * * *'
+  workflow_dispatch:  # Also allow manual trigger for testing
+
+jobs:
+  scheduled-job:
+    name: Scheduled Job
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Display schedule info
+        run: |
+          echo "This workflow runs on a schedule"
+          echo "Current time: $(date)"
+          echo "This could be used for:"
+          echo "  - Nightly builds"
+          echo "  - Periodic cleanup"
+          echo "  - Automated reports"
+          echo "  - Data synchronization"
+          
+      - name: Simulate periodic task
+        run: |
+          echo "Running periodic maintenance..."
+          echo "Task completed successfully!"

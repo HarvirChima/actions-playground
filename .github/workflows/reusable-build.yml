@@ -1,0 +1,66 @@
+name: Reusable Build Workflow
+
+# This is a reusable workflow that can be called from other workflows
+# It demonstrates:
+# - Reusable workflow definition
+# - Input parameters
+# - Output values
+# - Secrets passing
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: string
+      node-version:
+        description: 'Node.js version to use'
+        required: false
+        type: string
+        default: '20'
+    outputs:
+      build-status:
+        description: 'Build status result'
+        value: ${{ jobs.build.outputs.status }}
+    secrets:
+      deploy-token:
+        description: 'Deployment token'
+        required: false
+
+jobs:
+  build:
+    name: Reusable Build
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.build-step.outputs.status }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          
+      - name: Display configuration
+        run: |
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Node version: ${{ inputs.node-version }}"
+          echo "This is a reusable workflow!"
+          
+      - name: Build step
+        id: build-step
+        run: |
+          echo "Building for ${{ inputs.environment }}..."
+          echo "status=success" >> $GITHUB_OUTPUT
+          
+      # Note: Secrets passed to reusable workflows are always passed as empty strings
+      # if not provided, so checking for empty strings won't work as expected.
+      # In production, you'd typically always pass required secrets.
+      - name: Use secret if provided
+        run: |
+          echo "Deploy token handling would go here"
+          echo "In production, secrets should always be provided to reusable workflows"
+          # In real scenario: use secrets.deploy-token for deployment

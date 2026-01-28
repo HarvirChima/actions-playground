@@ -1,0 +1,73 @@
+name: 06 - Marketplace Actions
+
+# This workflow demonstrates using various marketplace actions
+# - Setup actions for different languages/tools
+# - Verified creators
+# - Popular community actions
+
+on:
+  push:
+    branches: [ main, copilot/** ]
+  workflow_dispatch:
+
+jobs:
+  setup-languages:
+    name: Setup Multiple Languages
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          
+      - name: Display versions
+        run: |
+          echo "Node version: $(node --version)"
+          echo "Python version: $(python --version)"
+          echo "Go version: $(go version)"
+          
+  upload-download-artifacts:
+    name: Upload and Download Artifacts
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Create artifact
+        run: |
+          mkdir -p artifacts
+          echo "Build timestamp: $(date)" > artifacts/build-info.txt
+          echo "Build number: ${{ github.run_number }}" >> artifacts/build-info.txt
+          
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name: build-artifacts
+          path: artifacts/
+          retention-days: 7
+          
+      - name: Download artifact
+        uses: actions/download-artifact@v4.1.3
+        with:
+          name: build-artifacts
+          path: downloaded-artifacts/
+          
+      - name: Display artifact contents
+        run: |
+          echo "Downloaded artifacts:"
+          cat downloaded-artifacts/build-info.txt

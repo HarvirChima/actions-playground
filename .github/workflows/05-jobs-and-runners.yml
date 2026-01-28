@@ -1,0 +1,91 @@
+name: 05 - Multiple Jobs and Runners
+
+# This workflow demonstrates:
+# - Multiple jobs running in parallel and sequence
+# - Different runner types (Ubuntu, Windows, macOS)
+# - Job dependencies
+# - Matrix strategy
+
+on:
+  push:
+    branches: [ main, copilot/** ]
+  workflow_dispatch:
+
+jobs:
+  # Job 1: Runs on Ubuntu
+  ubuntu-job:
+    name: Ubuntu Runner
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Display OS info
+        run: |
+          echo "Running on Ubuntu"
+          uname -a
+          lsb_release -a
+          
+  # Job 2: Runs on Windows
+  windows-job:
+    name: Windows Runner
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Display OS info
+        run: |
+          echo "Running on Windows"
+          systeminfo | findstr /B /C:"OS Name" /C:"OS Version"
+          
+  # Job 3: Runs on macOS
+  macos-job:
+    name: macOS Runner
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Display OS info
+        run: |
+          echo "Running on macOS"
+          sw_vers
+          
+  # Job 4: Runs after ubuntu-job completes
+  dependent-job:
+    name: Dependent Job
+    runs-on: ubuntu-latest
+    needs: ubuntu-job
+    
+    steps:
+      - name: Display dependency info
+        run: |
+          echo "This job runs after ubuntu-job completes"
+          echo "Useful for deployment pipelines"
+          
+  # Job 5: Matrix strategy example
+  matrix-job:
+    name: Matrix - ${{ matrix.os }} / Node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [18, 20]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          
+      - name: Display versions
+        run: |
+          node --version
+          npm --version

@@ -1,0 +1,46 @@
+name: 10 - Composite Action
+
+# This workflow demonstrates using composite actions
+# - Custom composite action from local repository
+# - Passing inputs to composite actions
+# - Using outputs from composite actions
+
+on:
+  push:
+    branches: [ main, copilot/** ]
+  workflow_dispatch:
+
+jobs:
+  use-composite-action:
+    name: Use Composite Action
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Use custom composite action
+        id: greet
+        uses: ./.github/actions/greet-user
+        with:
+          username: 'Demo User'
+          greeting: 'Welcome'
+          
+      - name: Display output from composite action
+        run: |
+          echo "Output from composite action: ${{ steps.greet.outputs.message }}"
+          
+      - name: Use composite action with different inputs
+        uses: ./.github/actions/greet-user
+        with:
+          username: 'Another User'
+          greeting: 'Hi'
+          
+      - name: Composite action benefits
+        run: |
+          echo "Composite Actions Benefits:"
+          echo "1. Package multiple steps into reusable action"
+          echo "2. Share common logic across workflows"
+          echo "3. Simplify complex workflows"
+          echo "4. Easier to maintain and update"
+          echo "5. Can be published to marketplace"

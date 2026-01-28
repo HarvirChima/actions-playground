@@ -1,0 +1,127 @@
+name: 11 - Best Practices
+
+# This workflow demonstrates GitHub Actions best practices
+# - Job and step naming
+# - Conditional execution
+# - Environment variables
+# - Outputs and artifacts
+# - Security considerations
+
+on:
+  push:
+    branches: [ main, copilot/** ]
+  workflow_dispatch:
+
+# Best Practice: Set explicit minimal permissions
+permissions:
+  contents: read
+
+env:
+  # Global environment variables
+  PROJECT_NAME: actions-playground
+  BUILD_NUMBER: ${{ github.run_number }}
+
+jobs:
+  best-practices-demo:
+    name: Best Practices Demonstration
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      # Best Practice: Pin actions to specific versions
+      - name: Setup Node.js (pinned version)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      # Best Practice: Use environment variables
+      - name: Use environment variables
+        env:
+          LOCAL_VAR: local-value
+        run: |
+          echo "Project: $PROJECT_NAME"
+          echo "Build: $BUILD_NUMBER"
+          echo "Local: $LOCAL_VAR"
+          
+      # Best Practice: Use conditionals appropriately
+      - name: Run only on main branch
+        if: github.ref == 'refs/heads/main'
+        run: echo "This runs only on main branch"
+        
+      - name: Run only on pull requests
+        if: github.event_name == 'pull_request'
+        run: echo "This runs only on pull requests"
+        
+      # Best Practice: Set outputs for job communication
+      - name: Set output
+        id: vars
+        run: |
+          echo "timestamp=$(date +%s)" >> $GITHUB_OUTPUT
+          echo "short-sha=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+          
+      - name: Use output
+        run: |
+          echo "Timestamp: ${{ steps.vars.outputs.timestamp }}"
+          echo "Short SHA: ${{ steps.vars.outputs.short-sha }}"
+          
+      # Best Practice: Handle errors appropriately
+      - name: Continue on error example
+        continue-on-error: true
+        run: |
+          echo "This step might fail, but workflow continues"
+          exit 0
+          
+      # Best Practice: Use meaningful step names
+      - name: Build application for production
+        run: echo "Building..."
+        
+      # Best Practice: Group related commands
+      - name: Display all environment info
+        run: |
+          echo "=== Environment Information ==="
+          echo "OS: $(uname -s)"
+          echo "Runner: ${{ runner.os }}"
+          echo "Event: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          
+  security-best-practices:
+    name: Security Best Practices
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Security considerations
+        run: |
+          echo "Security Best Practices:"
+          echo "1. Pin actions to commit SHA or specific tags"
+          echo "2. Never expose secrets in logs"
+          echo "3. Use CODEOWNERS for workflow files"
+          echo "4. Limit workflow permissions with 'permissions:' key"
+          echo "   Example: permissions: { contents: read }"
+          echo "5. Use environments for protection rules"
+          echo "6. Review third-party actions before use"
+          echo "7. Use verified creators when possible"
+          echo "8. Enable security features (Dependabot, CodeQL)"
+          
+  performance-best-practices:
+    name: Performance Best Practices
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Performance tips
+        run: |
+          echo "Performance Best Practices:"
+          echo "1. Use caching for dependencies"
+          echo "2. Use matrix builds for parallel execution"
+          echo "3. Use concurrency to cancel outdated runs"
+          echo "4. Optimize artifact sizes"
+          echo "5. Use self-hosted runners for better performance"
+          echo "6. Use path filters to skip unnecessary runs"
+          echo "7. Use reusable workflows to avoid duplication"
