@@ -1,41 +1,107 @@
+# =============================================================================
+# COMPOSITE ACTION: GREET USER
+# =============================================================================
+# 🎯 PURPOSE: This is a COMPOSITE ACTION - a custom action defined in this
+# repository that bundles multiple steps into a single reusable unit.
+#
+# 📚 KEY CONCEPTS COVERED:
+#   • action.yml structure (name, description, inputs, outputs, runs)
+#   • Composite action type ('using: composite')
+#   • Defining inputs with defaults
+#   • Producing outputs from steps
+#   • Running shell commands in composite actions
+#
+# 📁 FILE LOCATION:
+#   Composite actions must be in: .github/actions/<action-name>/action.yml
+#   This action is at: .github/actions/greet-user/action.yml
+#
+# 🔧 HOW TO USE THIS ACTION:
+#   In a workflow step:
+#     - uses: ./.github/actions/greet-user
+#       with:
+#         username: 'John'
+#         greeting: 'Hello'
+#
+# 📦 PUBLISHING TO MARKETPLACE:
+#   To share this action publicly:
+#   1. Move it to its own repository
+#   2. Create a release with a version tag (e.g., v1.0.0)
+#   3. Publish to GitHub Marketplace
+# =============================================================================
+
+# ACTION METADATA
+# These fields are shown in the Actions tab and Marketplace.
 name: 'Greet User'
 description: 'A composite action that greets a user and displays system info'
 author: 'GitHub Actions Demo'
 
+# =============================================================================
+# INPUTS
+# =============================================================================
+# Define parameters that users of this action can/must provide.
+# Access these in steps using: ${{ inputs.input-name }}
 inputs:
   username:
     description: 'Name of the user to greet'
-    required: true
+    required: true  # Caller MUST provide this
   greeting:
     description: 'Custom greeting message'
-    required: false
-    default: 'Hello'
+    required: false  # Optional
+    default: 'Hello'  # Used if caller doesn't provide a value
 
+# =============================================================================
+# OUTPUTS
+# =============================================================================
+# Define values that this action returns to the calling workflow.
+# Caller accesses these via: steps.<step-id>.outputs.<output-name>
 outputs:
   message:
     description: 'The greeting message'
+    # Reference a step output using: steps.<step-id>.outputs.<output-name>
     value: ${{ steps.greet.outputs.message }}
 
+# =============================================================================
+# RUNS: ACTION IMPLEMENTATION
+# =============================================================================
+# The 'runs' section defines what this action does when invoked.
 runs:
+  # 'using: composite' indicates this is a composite action (multiple steps).
+  # Other options include 'node20' for JavaScript actions or 'docker' for container actions.
   using: 'composite'
+  
+  # STEPS: The actual work this action performs.
+  # These are the same as workflow steps, but with one key difference:
+  # You MUST specify 'shell' for every 'run' command in composite actions.
   steps:
+    # -------------------------------------------------------------------------
+    # STEP 1: Greet the user and set an output
+    # -------------------------------------------------------------------------
     - name: Greet user
-      id: greet
-      shell: bash
+      id: greet  # ID is required to reference this step's outputs
+      shell: bash  # REQUIRED in composite actions!
       run: |
+        # Use inputs via ${{ inputs.input-name }}
         MESSAGE="${{ inputs.greeting }}, ${{ inputs.username }}! Welcome to GitHub Actions!"
         echo "$MESSAGE"
+        # Set a step output that becomes an action output (via 'outputs' section above)
         echo "message=$MESSAGE" >> $GITHUB_OUTPUT
         
+    # -------------------------------------------------------------------------
+    # STEP 2: Display system information
+    # -------------------------------------------------------------------------
     - name: Display system info
-      shell: bash
+      shell: bash  # REQUIRED in composite actions!
       run: |
         echo "Runner OS: ${{ runner.os }}"
         echo "Timestamp: $(date)"
         echo "Working directory: $(pwd)"
         
+    # -------------------------------------------------------------------------
+    # STEP 3: Display GitHub context information
+    # -------------------------------------------------------------------------
+    # Composite actions have access to the same context objects as workflows.
     - name: Display context info
-      shell: bash
+      shell: bash  # REQUIRED in composite actions!
       run: |
         echo "Repository: ${{ github.repository }}"
         echo "Ref: ${{ github.ref }}"

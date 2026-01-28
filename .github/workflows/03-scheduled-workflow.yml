@@ -1,14 +1,62 @@
+# =============================================================================
+# 03 - SCHEDULED WORKFLOW
+# =============================================================================
+# 🎯 PURPOSE: Demonstrates how to run workflows on a schedule using cron syntax.
+# Perfect for periodic tasks like nightly builds, cleanup jobs, or automated reports.
+#
+# 📚 KEY CONCEPTS COVERED:
+#   • schedule trigger with cron syntax
+#   • Combining multiple triggers (schedule + workflow_dispatch)
+#   • Understanding cron time expressions
+#
+# ⏰ CRON SYNTAX EXPLAINED:
+#   A cron expression has 5 fields: minute, hour, day of month, month, day of week
+#   
+#   ┌───────────── minute (0 - 59)
+#   │ ┌───────────── hour (0 - 23)
+#   │ │ ┌───────────── day of month (1 - 31)
+#   │ │ │ ┌───────────── month (1 - 12 or JAN-DEC)
+#   │ │ │ │ ┌───────────── day of week (0 - 6 or SUN-SAT)
+#   │ │ │ │ │
+#   * * * * *
+#
+#   Special characters:
+#   • '*' = any value
+#   • ',' = value list separator (e.g., "1,3,5")
+#   • '-' = range of values (e.g., "1-5")
+#   • '/' = step values (e.g., "*/15" = every 15)
+#
+#   Examples:
+#   • '0 0 * * *'     = Every day at midnight (00:00 UTC)
+#   • '30 9 * * 1-5'  = 9:30 AM on weekdays (Mon-Fri)
+#   • '0 */6 * * *'   = Every 6 hours
+#   • '0 0 1 * *'     = First day of every month at midnight
+#   • '*/15 * * * *'  = Every 15 minutes
+#
+# ⚠️ IMPORTANT NOTES:
+#   • All times are in UTC (not your local timezone!)
+#   • GitHub may delay scheduled runs during high load periods
+#   • Scheduled workflows only run on the default branch (usually 'main')
+#   • The shortest interval is every 5 minutes (GitHub limit)
+# =============================================================================
+
 name: 03 - Scheduled Workflow
 
-# This workflow demonstrates scheduled triggers using cron syntax
-# - Runs on a schedule (every day at 00:00 UTC in this example)
-# - Useful for periodic tasks like backups, reports, cleanup
-
 on:
+  # SCHEDULE TRIGGER
+  # Define one or more cron schedules for when this workflow should run.
   schedule:
-    # Runs at 00:00 UTC every day
+    # This runs at 00:00 UTC every day.
+    # Format: minute hour day-of-month month day-of-week
     - cron: '0 0 * * *'
-  workflow_dispatch:  # Also allow manual trigger for testing
+    
+    # You can have multiple schedules (uncomment to use):
+    # - cron: '0 12 * * *'  # Also runs at noon UTC
+  
+  # WORKFLOW_DISPATCH: Also allow manual triggering for testing.
+  # This is very useful because you don't want to wait for the schedule
+  # to test your workflow - you can trigger it manually anytime.
+  workflow_dispatch:
 
 jobs:
   scheduled-job:
@@ -19,6 +67,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         
+      # Display information about the scheduled run
       - name: Display schedule info
         run: |
           echo "This workflow runs on a schedule"
@@ -29,6 +78,13 @@ jobs:
           echo "  - Automated reports"
           echo "  - Data synchronization"
           
+      # Simulate a periodic maintenance task
+      # In a real scenario, this could be:
+      #   • Cleaning up old Docker images
+      #   • Rotating logs
+      #   • Generating reports
+      #   • Running security scans
+      #   • Syncing data between systems
       - name: Simulate periodic task
         run: |
           echo "Running periodic maintenance..."

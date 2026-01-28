@@ -1,25 +1,74 @@
-name: 11 - Best Practices
+# =============================================================================
+# 11 - BEST PRACTICES
+# =============================================================================
+# 🎯 PURPOSE: Demonstrates GitHub Actions best practices for security,
+# performance, maintainability, and reliability.
+#
+# 📚 KEY CONCEPTS COVERED:
+#   • Explicit permission settings
+#   • Environment variables (global and local)
+#   • Conditional execution (if statements)
+#   • Setting and using outputs
+#   • Error handling with continue-on-error
+#   • Meaningful naming conventions
+#
+# ✅ BEST PRACTICES SUMMARY:
+#
+#   SECURITY:
+#   • Set minimal permissions with 'permissions' key
+#   • Pin actions to specific versions or commit SHAs
+#   • Never expose secrets in logs
+#   • Use CODEOWNERS for workflow file changes
+#   • Review third-party actions before using
+#
+#   PERFORMANCE:
+#   • Use caching for dependencies
+#   • Use matrix builds for parallel testing
+#   • Use concurrency to cancel outdated runs
+#   • Use path filters to skip unnecessary runs
+#
+#   MAINTAINABILITY:
+#   • Use meaningful names for jobs and steps
+#   • Use reusable workflows for common patterns
+#   • Group related commands in single steps
+#   • Document complex logic with comments
+#
+#   RELIABILITY:
+#   • Handle errors appropriately
+#   • Set timeouts for long-running jobs
+#   • Use conditionals to control execution flow
+# =============================================================================
 
-# This workflow demonstrates GitHub Actions best practices
-# - Job and step naming
-# - Conditional execution
-# - Environment variables
-# - Outputs and artifacts
-# - Security considerations
+name: 11 - Best Practices
 
 on:
   push:
     branches: [ main, copilot/** ]
   workflow_dispatch:
 
-# Best Practice: Set explicit minimal permissions
+# =============================================================================
+# BEST PRACTICE: EXPLICIT PERMISSIONS
+# =============================================================================
+# By default, workflows have broad permissions. Always restrict to minimum needed.
+# This follows the security principle of least privilege.
+#
+# Available permissions:
+#   actions, checks, contents, deployments, id-token, issues,
+#   packages, pages, pull-requests, repository-projects, security-events,
+#   statuses, etc.
+#
+# Values: 'read', 'write', or 'none'
 permissions:
   contents: read
 
+# =============================================================================
+# GLOBAL ENVIRONMENT VARIABLES
+# =============================================================================
+# Define variables available to ALL jobs and steps in this workflow.
+# Access with: $VARIABLE_NAME (shell) or ${{ env.VARIABLE_NAME }} (expressions)
 env:
-  # Global environment variables
   PROJECT_NAME: actions-playground
-  BUILD_NUMBER: ${{ github.run_number }}
+  BUILD_NUMBER: ${{ github.run_number }}  # Dynamic value from GitHub context
 
 jobs:
   best-practices-demo:
@@ -30,22 +79,37 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         
-      # Best Practice: Pin actions to specific versions
+      # -----------------------------------------------------------------------
+      # BEST PRACTICE: PIN ACTION VERSIONS
+      # -----------------------------------------------------------------------
+      # Always specify a version when using actions:
+      #   @v4 - Major version (recommended for balance of stability/updates)
+      #   @v4.0.0 - Exact version (most predictable)
+      #   @abc123def - Commit SHA (most secure, prevents tampering)
       - name: Setup Node.js (pinned version)
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           
-      # Best Practice: Use environment variables
+      # -----------------------------------------------------------------------
+      # BEST PRACTICE: USE ENVIRONMENT VARIABLES
+      # -----------------------------------------------------------------------
+      # Environment variables make workflows more maintainable and secure.
+      # - Global env vars: Defined at workflow level
+      # - Local env vars: Defined at step level (override global)
       - name: Use environment variables
         env:
-          LOCAL_VAR: local-value
+          LOCAL_VAR: local-value  # Step-level env var
         run: |
-          echo "Project: $PROJECT_NAME"
-          echo "Build: $BUILD_NUMBER"
-          echo "Local: $LOCAL_VAR"
+          echo "Project: $PROJECT_NAME"   # Global env var
+          echo "Build: $BUILD_NUMBER"     # Global env var with expression
+          echo "Local: $LOCAL_VAR"        # Step-level env var
           
-      # Best Practice: Use conditionals appropriately
+      # -----------------------------------------------------------------------
+      # BEST PRACTICE: CONDITIONAL EXECUTION
+      # -----------------------------------------------------------------------
+      # Use 'if' to control when steps run.
+      # This saves time and resources by skipping unnecessary work.
       - name: Run only on main branch
         if: github.ref == 'refs/heads/main'
         run: echo "This runs only on main branch"
@@ -54,30 +118,47 @@ jobs:
         if: github.event_name == 'pull_request'
         run: echo "This runs only on pull requests"
         
-      # Best Practice: Set outputs for job communication
+      # -----------------------------------------------------------------------
+      # BEST PRACTICE: SET OUTPUTS FOR JOB COMMUNICATION
+      # -----------------------------------------------------------------------
+      # Use GITHUB_OUTPUT to pass data between steps.
+      # Format: echo "name=value" >> $GITHUB_OUTPUT
       - name: Set output
-        id: vars
+        id: vars  # ID required to reference outputs
         run: |
           echo "timestamp=$(date +%s)" >> $GITHUB_OUTPUT
           echo "short-sha=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
           
+      # Access outputs using: steps.<step-id>.outputs.<output-name>
       - name: Use output
         run: |
           echo "Timestamp: ${{ steps.vars.outputs.timestamp }}"
           echo "Short SHA: ${{ steps.vars.outputs.short-sha }}"
           
-      # Best Practice: Handle errors appropriately
+      # -----------------------------------------------------------------------
+      # BEST PRACTICE: HANDLE ERRORS APPROPRIATELY
+      # -----------------------------------------------------------------------
+      # Use 'continue-on-error: true' for steps that might fail but shouldn't
+      # stop the entire workflow (e.g., optional tests, notifications).
       - name: Continue on error example
         continue-on-error: true
         run: |
           echo "This step might fail, but workflow continues"
           exit 0
           
-      # Best Practice: Use meaningful step names
+      # -----------------------------------------------------------------------
+      # BEST PRACTICE: USE MEANINGFUL STEP NAMES
+      # -----------------------------------------------------------------------
+      # Good names describe WHAT the step does, making logs easier to read.
+      # Bad:  "Step 1", "Run script"
+      # Good: "Build application for production", "Run unit tests"
       - name: Build application for production
         run: echo "Building..."
         
-      # Best Practice: Group related commands
+      # -----------------------------------------------------------------------
+      # BEST PRACTICE: GROUP RELATED COMMANDS
+      # -----------------------------------------------------------------------
+      # Keep related commands together in one step for clarity and efficiency.
       - name: Display all environment info
         run: |
           echo "=== Environment Information ==="
@@ -86,6 +167,9 @@ jobs:
           echo "Event: ${{ github.event_name }}"
           echo "Ref: ${{ github.ref }}"
           
+  # ===========================================================================
+  # SECURITY BEST PRACTICES JOB
+  # ===========================================================================
   security-best-practices:
     name: Security Best Practices
     runs-on: ubuntu-latest
@@ -107,6 +191,9 @@ jobs:
           echo "7. Use verified creators when possible"
           echo "8. Enable security features (Dependabot, CodeQL)"
           
+  # ===========================================================================
+  # PERFORMANCE BEST PRACTICES JOB
+  # ===========================================================================
   performance-best-practices:
     name: Performance Best Practices
     runs-on: ubuntu-latest

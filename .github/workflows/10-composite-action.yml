@@ -1,9 +1,45 @@
-name: 10 - Composite Action
+# =============================================================================
+# 10 - COMPOSITE ACTIONS
+# =============================================================================
+# 🎯 PURPOSE: Demonstrates how to use COMPOSITE ACTIONS - reusable bundles
+# of steps that you can share across workflows.
+#
+# 📚 KEY CONCEPTS COVERED:
+#   • Using local composite actions from your repository
+#   • Passing inputs to composite actions
+#   • Receiving outputs from composite actions
+#   • When to use composite actions vs reusable workflows
+#
+# 🔧 WHAT ARE COMPOSITE ACTIONS?
+#   Composite actions are custom actions defined in your repository that
+#   bundle multiple steps into a single reusable unit.
+#
+#   Location: .github/actions/<action-name>/action.yml
+#
+#   Benefits:
+#   • Package multiple steps into one action
+#   • Share logic across workflows in the same repo
+#   • Can be published to the Marketplace for others to use
+#   • Simpler than reusable workflows for small tasks
+#
+# 📊 COMPOSITE ACTION vs REUSABLE WORKFLOW:
+#
+#   COMPOSITE ACTION:
+#   • Located in: .github/actions/*/action.yml
+#   • Called at STEP level: - uses: ./.github/actions/my-action
+#   • Runs on the SAME runner as the calling workflow
+#   • Contains only steps (no jobs)
+#   • Best for: Small, focused tasks
+#
+#   REUSABLE WORKFLOW:
+#   • Located in: .github/workflows/*.yml
+#   • Called at JOB level: uses: ./.github/workflows/workflow.yml
+#   • Can have its OWN runner
+#   • Contains full jobs with steps
+#   • Best for: Complex, multi-job pipelines
+# =============================================================================
 
-# This workflow demonstrates using composite actions
-# - Custom composite action from local repository
-# - Passing inputs to composite actions
-# - Using outputs from composite actions
+name: 10 - Composite Action
 
 on:
   push:
@@ -19,23 +55,43 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
+      # -----------------------------------------------------------------------
+      # USING A LOCAL COMPOSITE ACTION
+      # -----------------------------------------------------------------------
+      # Use a relative path to reference actions in your repository.
+      # The path points to the directory containing action.yml (not the file itself).
+      #
+      # Our composite action 'greet-user' is located at:
+      # .github/actions/greet-user/action.yml
       - name: Use custom composite action
-        id: greet
+        id: greet  # ID allows us to reference outputs from this step
         uses: ./.github/actions/greet-user
         with:
+          # Pass inputs defined in the action's action.yml
           username: 'Demo User'
           greeting: 'Welcome'
           
+      # -----------------------------------------------------------------------
+      # USING OUTPUTS FROM COMPOSITE ACTIONS
+      # -----------------------------------------------------------------------
+      # Access outputs using: steps.<step-id>.outputs.<output-name>
+      # The output names are defined in the action's action.yml file.
       - name: Display output from composite action
         run: |
           echo "Output from composite action: ${{ steps.greet.outputs.message }}"
           
+      # -----------------------------------------------------------------------
+      # REUSING WITH DIFFERENT INPUTS
+      # -----------------------------------------------------------------------
+      # Call the same action multiple times with different inputs.
+      # This demonstrates the reusability of composite actions.
       - name: Use composite action with different inputs
         uses: ./.github/actions/greet-user
         with:
           username: 'Another User'
           greeting: 'Hi'
           
+      # Summary of composite action benefits
       - name: Composite action benefits
         run: |
           echo "Composite Actions Benefits:"
